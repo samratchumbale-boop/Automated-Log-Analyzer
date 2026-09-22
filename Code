@@ -1,0 +1,92 @@
+from collections import Counter
+import os
+
+def analyze_log_file(filename):
+    counts = Counter({
+        "ERROR": 0,
+        "WARNING": 0,
+        "INFO": 0
+    })
+
+    errors = []
+    warnings = []
+    infos = []
+
+    if not os.path.exists(filename):
+        print(f"Error: '{filename}' not found.")
+        return
+
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            for line in file:
+                line = line.strip()
+
+                if "ERROR" in line:
+                    counts["ERROR"] += 1
+                    errors.append(line)
+
+                elif "WARNING" in line:
+                    counts["WARNING"] += 1
+                    warnings.append(line)
+
+                elif "INFO" in line:
+                    counts["INFO"] += 1
+                    infos.append(line)
+
+        total_logs = (
+            counts["ERROR"] +
+            counts["WARNING"] +
+            counts["INFO"]
+        )
+
+        if counts["ERROR"] > 10:
+            severity = "CRITICAL"
+        elif counts["ERROR"] > 5:
+            severity = "HIGH"
+        elif counts["ERROR"] > 0:
+            severity = "MEDIUM"
+        else:
+            severity = "LOW"
+
+        report = []
+        report.append("=" * 60)
+        report.append("AUTOMATED LOG FILE ANALYZER REPORT")
+        report.append("=" * 60)
+        report.append(f"Total Log Entries : {total_logs}")
+        report.append(f"Errors            : {counts['ERROR']}")
+        report.append(f"Warnings          : {counts['WARNING']}")
+        report.append(f"Information       : {counts['INFO']}")
+        report.append(f"Overall Severity  : {severity}")
+        report.append("")
+
+        report.append("ERROR DETAILS")
+        report.append("-" * 60)
+        report.extend(errors if errors else ["No Errors Found"])
+        report.append("")
+
+        report.append("WARNING DETAILS")
+        report.append("-" * 60)
+        report.extend(warnings if warnings else ["No Warnings Found"])
+        report.append("")
+
+        report.append("INFO DETAILS")
+        report.append("-" * 60)
+        report.extend(infos if infos else ["No Information Messages Found"])
+
+        final_report = "\n".join(report)
+
+        print(final_report)
+
+        try:
+            with open("report.txt", "w", encoding="utf-8") as output:
+                output.write(final_report)
+            print("\nReport saved successfully as 'report.txt'")
+        except:
+            print("\nReport could not be saved, but analysis completed.")
+
+    except Exception as e:
+        print("Error while reading log file:", e)
+
+
+# Main Program
+analyze_log_file("system.log")
